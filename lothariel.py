@@ -31,7 +31,7 @@ MAP_HEIGHT = 45
 # room generator
 ROOM_MAX_SIZE = 10
 ROOM_MIN_SIZE = 6
-MAX_ROOMS = 15
+MAX_ROOMS = 25
 
 # FOV globals
 FOV_ALGO = 0
@@ -121,7 +121,7 @@ def create_v_tunnel(y1, y2, x):
         map[x][y].block_sight = False
         
 def make_map():
-    global map
+    global map, player
     
     # fill map with blocked tiles
     map = [[Tile(True)
@@ -137,7 +137,7 @@ def make_map():
         h = libtcod.random_get_int(0, ROOM_MIN_SIZE, ROOM_MAX_SIZE)
         # random position without leaving boundary of map
         x = libtcod.random_get_int(0, 0, MAP_WIDTH - w - 1)
-        y = libtcod.random_get_int(0, 0, MAP_HEIGHT - w - 1)
+        y = libtcod.random_get_int(0, 0, MAP_HEIGHT - h - 1)
     
         new_room = Rect(x, y, w, h)
     
