@@ -71,7 +71,7 @@ class Rect:
     def intersect(self, other):
         #returns true if this rectangle intersects with another one
         return (self.x1 <= other.x2 and self.x2 >= other.x1 and
-            self.y1 <= other.y2 and self.y2 >= other.y1)
+                self.y1 <= other.y2 and self.y2 >= other.y1)
     
 # object setup
 class Object:
@@ -147,37 +147,38 @@ def make_map():
             if new_room.intersect(other_room):
                 failed = True
                 break
-            if not failed:
-                # draw the room
-                create_room(new_room)
-        
-                # get the center coordinates
-                (new_x, new_y) = new_room.center()
-        
-                if num_rooms == 0:
-                    # set starting point in the first room
-                    player.x = new_x
-                    player.y = new_y
-          
-                else:
-                    # for all rooms after the first, make a tunnel from the previous room
-                    # using the center coordinates of the previous room
-                    (prev_x, prev_y) = rooms[num_rooms-1].center()
-        
-                    # flip a coin
-                    if libtcod.random_get_int(0, 0, 1) == 1:
-                        # horizontal first, vertical second
-                        create_h_tunnel(prev_x, new_x, prev_y)
-                        create_v_tunnel(prev_y, new_y, new_x)
-                
-                    else:
-                        # vertical first, horizontal second
-                        create_v_tunnel(prev_y, new_y, prev_x)
-                        create_h_tunnel(prev_x, new_x, new_y)
             
-                # append the new room to the list
-                rooms.append(new_room)
-                num_rooms += 1
+        if not failed:
+            # draw the room
+            create_room(new_room)
+        
+            # get the center coordinates
+            (new_x, new_y) = new_room.center()
+        
+            if num_rooms == 0:
+                # set starting point in the first room
+                player.x = new_x
+                player.y = new_y
+          
+            else:
+                # for all rooms after the first, make a tunnel from the previous room
+                # using the center coordinates of the previous room
+                (prev_x, prev_y) = rooms[num_rooms-1].center()
+        
+                # flip a coin
+                if libtcod.random_get_int(0, 0, 1) == 1:
+                    # horizontal first, vertical second
+                    create_h_tunnel(prev_x, new_x, prev_y)
+                    create_v_tunnel(prev_y, new_y, new_x)
+                
+                else:
+                    # vertical first, horizontal second
+                    create_v_tunnel(prev_y, new_y, prev_x)
+                    create_h_tunnel(prev_x, new_x, new_y)
+           
+            # append the new room to the list
+            rooms.append(new_room)
+            num_rooms += 1
         
       
 # render function
