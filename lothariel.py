@@ -13,6 +13,9 @@
 # A roguelike based on the python/libtcod tutorial 
 #
 
+############################
+# Imports
+############################
 
 # import the libtcod library
 import libtcodpy as libtcod
@@ -23,7 +26,9 @@ import math
 # import wordwrap
 import textwrap
 
-# constants 
+###########################
+# Global Values 
+########################### 
 
 # global values
 SCREEN_WIDTH = 80
@@ -63,6 +68,10 @@ color_light_wall = libtcod.Color(153, 51, 255)
 color_dark_ground = libtcod.Color(92, 122, 153) 
 color_light_ground = libtcod.Color(153, 204, 255)
 
+################################
+# Classes
+################################
+
 # map tile setup
 class Tile:
     # a tile of the map and it's associated properties
@@ -93,74 +102,6 @@ class Rect:
         return (self.x1 <= other.x2 and self.x2 >= other.x1 and
                 self.y1 <= other.y2 and self.y2 >= other.y1)
 
-# fighter class
-class Fighter:
-    # combat related properties and methods 
-    def __init__(self, hp, defense, power, death_function=None):
-        self.max_hp = hp
-        self.hp = hp
-        self.defense = defense
-        self.power = power
-        self.death_function = death_function
-        
-    def take_damage(self, damage):
-        # apply damage if possible
-        if damage > 0:
-            self.hp -= damage
-            if self.hp <= 0:
-               function = self.death_function
-               if function is not None:
-                   function(self.owner)
-            
-    # attack target
-    def attack(self, target):
-        # a simple formula for attack damage
-        damage = self.power - target.fighter.defense
-        
-        if damage > 0:
-            # target takes damage
-            message(self.owner.name.capitalize() + ' attacks ' + target.name + ' for ' + str(damage) + ' hit points.')
-            target.fighter.take_damage(damage)
-        else:
-            message(self.owner.name.capitalize() + ' attacks ' + target.name + ' but it is ineffective.')
-
-# deth n stuff
-def player_death(player):
-    # ends game
-    global game_state
-    message('Bye world!')
-    game_state = 'dead'
-    
-    # change player into a corpse for teh lulz
-    player.char = '%'
-    player.color = libtcod.dark_red
-
-def monster_death(monster):
-    # transforms monster into a corpse that lies around but otherwise doesn't bother anyone
-    message(monster.name.capitalize() + ' is dead!')
-    monster.char = '%'
-    monster.color = libtcod.dark_red
-    monster.blocks = False
-    monster.fighter = None
-    monster.ai = None
-    monster.name = monster.name + ' corpse'
-    monster.send_to_back()
-            
-# basic monster ai
-class BasicMonster:
-    def take_turn(self):
-        # monster takes it's turn. if you can see if, it can see you.
-        monster = self.owner
-        if libtcod.map_is_in_fov(fov_map, monster.x, monster.y):
-        
-            # move towards the player
-            if monster.distance_to(player) >= 2:
-                monster.move_towards(player.x, player.y)
-                
-            # within attack range
-            elif player.fighter.hp > 0:
-                monster.fighter.attack(player)
-    
 # object setup
 class Object:
     # this is a generic object, represented with a character
@@ -221,6 +162,58 @@ class Object:
         global objects
         objects.remove(self)
         objects.insert(0, self)
+        
+# fighter class
+class Fighter:
+    # combat related properties and methods 
+    def __init__(self, hp, defense, power, death_function=None):
+        self.max_hp = hp
+        self.hp = hp
+        self.defense = defense
+        self.power = power
+        self.death_function = death_function
+        
+    def take_damage(self, damage):
+        # apply damage if possible
+        if damage > 0:
+            self.hp -= damage
+            if self.hp <= 0:
+               function = self.death_function
+               if function is not None:
+                   function(self.owner)
+            
+    # attack target
+    def attack(self, target):
+        # a simple formula for attack damage
+        damage = self.power - target.fighter.defense
+        
+        if damage > 0:
+            # target takes damage
+            message(self.owner.name.capitalize() + ' attacks ' + target.name + ' for ' + str(damage) + ' hit points.')
+            target.fighter.take_damage(damage)
+        else:
+            message(self.owner.name.capitalize() + ' attacks ' + target.name + ' but it is ineffective.')
+
+
+            
+# basic monster ai
+class BasicMonster:
+    def take_turn(self):
+        # monster takes it's turn. if you can see if, it can see you.
+        monster = self.owner
+        if libtcod.map_is_in_fov(fov_map, monster.x, monster.y):
+        
+            # move towards the player
+            if monster.distance_to(player) >= 2:
+                monster.move_towards(player.x, player.y)
+                
+            # within attack range
+            elif player.fighter.hp > 0:
+                monster.fighter.attack(player)
+    
+###################################
+# Functions
+###################################
 
 # test for blocks
 def is_blocked(x, y):
@@ -337,15 +330,48 @@ def place_objects(room):
                 fighter_component = Fighter(hp=10, defense=0, power=3, death_function=monster_death)
                 ai_component = BasicMonster()
                 
-                monster = Object(x, y, 'r', 'rat', libtcod.light_sepia, blocks=True, fighter=fighter_component, ai=ai_component)
+                monster = Object(x, y, 'r', 'rat', libtcod.light_sepia,
+                    blocks=True, fighter=fighter_component, ai=ai_component)
             else:
                 # create a radioactive rat
                 fighter_component = Fighter(hp=15, defense=1, power=5, death_function=monster_death)
                 ai_component = BasicMonster()
                 
-                monster = Object(x, y, 'R', 'radioactive rat', libtcod.desaturated_green, blocks=True, fighter=fighter_component, ai=ai_component)
+                monster = Object(x, y, 'R', 'radioactive rat', libtcod.desaturated_green,
+                    blocks=True, fighter=fighter_component, ai=ai_component)
             
             objects.append(monster)
+
+# status bar
+def render_bar(x, y, total_width, name, value, maximum, bar_color, back_color):
+    bar_width = int(float(value) / maximum * total_width)
+    
+    # render the background first
+    libtcod.console_set_default_background(panel, back_color)
+    libtcod.console_rect(panel, x, y, total_width, 1, False, libtcod.BKGND_SCREEN)
+    
+    # render the bar on top
+    libtcod.console_set_default_background(panel, bar_color)
+    if bar_width > 0:
+        libtcod.console_rect(panel, x, y, bar_width, 1, False, libtcod.BKGND_SCREEN)
+        
+    # text containing useful stuff and things
+    libtcod.console_set_default_foreground(panel, libtcod.white)
+    libtcod.console_print_ex(panel, x + total_width / 2, y, libtcod.BKGND_NONE, libtcod.CENTER,
+        name + ': ' + str(value) + '/' + str(maximum))
+
+def get_names_under_mouse():
+    global mouse
+    
+    # return a string with the names of all objects under the mouse
+    (x, y) = (mouse.cx, mouse.cy)
+    
+    # create a list with the names of objects at the mouse's coordinates and in FOV
+    names = [obj.name for obj in objects
+        if obj.x == x and obj.y == y and libtcod.map_is_in_fov(fov_map, obj.x, obj.y)]
+        
+    names = ', '.join(names) # join the names, and separate with commas
+    return names.capitalize()
         
 # render function
 def render_all():
@@ -404,85 +430,28 @@ def render_all():
     
     render_bar(1, 1, BAR_WIDTH, 'HP', player.fighter.hp, player.fighter.max_hp,
         libtcod.light_red, libtcod.darker_red)
+        
+    # display names of objects under the mouse
+    libtcod.console_set_default_foreground(panel, libtcod.light_gray)
+    libtcod.console_print_ex(panel, 1, 0, libtcod.BKGND_NONE, libtcod.LEFT, get_names_under_mouse())
     
     # blit to the root console
     
-    libtcod.console_blit(panel, 0, 0, SCREEN_WIDTH, PANEL_HEIGHT, 0, 0, PANEL_Y)
+    libtcod.console_blit(panel, 0, 0, SCREEN_WIDTH, PANEL_HEIGHT, 0, 0, PANEL_Y)       
 
-# status bar
-def render_bar(x, y, total_width, name, value, maximum, bar_color, back_color):
-    bar_width = int(float(value) / maximum * total_width)
-    
-    # render the background first
-    libtcod.console_set_default_background(panel, back_color)
-    libtcod.console_rect(panel, x, y, total_width, 1, False, libtcod.BKGND_SCREEN)
-    
-    # render the bar on top
-    libtcod.console_set_default_background(panel, bar_color)
-    if bar_width > 0:
-        libtcod.console_rect(panel, x, y, bar_width, 1, False, libtcod.BKGND_SCREEN)
-        
-    # text containing useful stuff and things
-    libtcod.console_set_default_foreground(panel, libtcod.white)
-    libtcod.console_print_ex(panel, x + total_width / 2, y, libtcod.BKGND_NONE, libtcod.CENTER,
-        name + ': ' + str(value) + '/' + str(maximum))
-    
-        
-# player init
-fighter_component = Fighter(hp=30, defense=2, power=5, death_function=player_death)
-player = Object(0, 0, '@', 'player', libtcod.white, blocks=True, fighter=fighter_component)
+# message log
+def message(new_msg, color = libtcod.white):
+    # split into multiple lines if required
+    new_msg_lines = textwrap.wrap(new_msg, MSG_WIDTH)
 
-
-# list of objects in game
-objects = [player]
-
-# list of messages in the game
-game_msgs = []
-
-# input handling
-def handle_keys():
-    global fov_recompute
-    
-    # global commands
-    key = libtcod.console_wait_for_keypress(True)
-    
-    # Alt + Enter : toggle fullscreen
-    if key.vk == libtcod.KEY_ENTER and key.lalt:
-        libtcod.console_set_fullscreen(not libtcod.console_is_fullscreen())
-    
-    # Esc : exit game    
-    elif key.vk == libtcod.KEY_ESCAPE:
-        return 'exit' 
-    
-    if game_state == 'playing':
-        # movement keys
-        if libtcod.console_is_key_pressed(libtcod.KEY_KP8):
-            player_move_or_attack(0, -1)
-        
-        elif libtcod.console_is_key_pressed(libtcod.KEY_KP2):
-            player_move_or_attack(0, 1)
-        
-        elif libtcod.console_is_key_pressed(libtcod.KEY_KP4):
-            player_move_or_attack(-1, 0)
-        
-        elif libtcod.console_is_key_pressed(libtcod.KEY_KP6):
-            player_move_or_attack(1, 0)
-        
-        elif libtcod.console_is_key_pressed(libtcod.KEY_KP1):
-            player_move_or_attack(-1, 1)
-        
-        elif libtcod.console_is_key_pressed(libtcod.KEY_KP3):
-            player_move_or_attack(1, 1)
-        
-        elif libtcod.console_is_key_pressed(libtcod.KEY_KP7):
-            player_move_or_attack(-1, -1)
-        
-        elif libtcod.console_is_key_pressed(libtcod.KEY_KP9):
-            player_move_or_attack(1, -1)
+    for line in new_msg_lines:
+        # if the buffer is full, remove the oldest message to make room for the newest
+        if len(game_msgs) == MSG_HEIGHT:
+            del game_msgs[0]
             
-        else:
-            return 'didnt-take-turn'
-   
+        # add the new line as a tuple, with text and color
+        game_msgs.append( (line, color) )
+
 def player_move_or_attack(dx, dy):
     global fov_recompute
     
@@ -504,26 +473,87 @@ def player_move_or_attack(dx, dy):
         player.move(dx, dy)
         fov_recompute = True
 
-# message log
-def message(new_msg, color = libtcod.white):
-    # split into multiple lines if required
-    new_msg_lines = textwrap.wrap(new_msg, MSG_WIDTH)
-
-    for line in new_msg_lines:
-        # if the buffer is full, remove the oldest message to make room for the newest
-        if len(game_msgs) == MSG_HEIGHT:
-            del game_msgs[0]
+# input handling
+def handle_keys():
+    global fov_recompute
+    global keys
+        
+    # Alt + Enter : toggle fullscreen
+    if key.vk == libtcod.KEY_ENTER and key.lalt:
+        libtcod.console_set_fullscreen(not libtcod.console_is_fullscreen())
+    
+    # Esc : exit game    
+    elif key.vk == libtcod.KEY_ESCAPE:
+        return 'exit' 
+    
+    if game_state == 'playing':
+        # movement keys
+        if key.vk == libtcod.KEY_KP8:
+            player_move_or_attack(0, -1)
+        
+        elif key.vk == libtcod.KEY_KP2:
+            player_move_or_attack(0, 1)
+        
+        elif key.vk == libtcod.KEY_KP4:
+            player_move_or_attack(-1, 0)
+        
+        elif key.vk == libtcod.KEY_KP6:
+            player_move_or_attack(1, 0)
+        
+        elif key.vk == libtcod.KEY_KP1:
+            player_move_or_attack(-1, 1)
+        
+        elif key.vk == libtcod.KEY_KP3:
+            player_move_or_attack(1, 1)
+        
+        elif key.vk == libtcod.KEY_KP7:
+            player_move_or_attack(-1, -1)
+        
+        elif key.vk == libtcod.KEY_KP9:
+            player_move_or_attack(1, -1)
             
-        # add the new line as a tuple, with text and color
-        game_msgs.append( (line, color) )
+        else:
+            return 'didnt-take-turn'
+            
+# deth n stuff
+def player_death(player):
+    # ends game
+    global game_state
+    message('Bye world!', libtcod.red)
+    game_state = 'dead'
+    
+    # change player into a corpse for teh lulz
+    player.char = '%'
+    player.color = libtcod.dark_red
 
+def monster_death(monster):
+    # transforms monster into a corpse that lies around but otherwise doesn't bother anyone
+    message(monster.name.capitalize() + ' is dead!', libtcod.orange)
+    monster.char = '%'
+    monster.color = libtcod.dark_red
+    monster.blocks = False
+    monster.fighter = None
+    monster.ai = None
+    monster.name = monster.name + ' corpse'
+    monster.send_to_back()
+    
+###############################
+# Initialization and main loop
+###############################        
         
 # set up console
 libtcod.console_set_custom_font('terminal12x12_gs_ro.png', libtcod.FONT_TYPE_GREYSCALE | libtcod.FONT_LAYOUT_ASCII_INROW)
 libtcod.console_init_root(SCREEN_WIDTH, SCREEN_HEIGHT, 'Lands of Lothariel', False)
+libtcod.sys_set_fps(LIMIT_FPS)
 con = libtcod.console_new(MAP_WIDTH, MAP_HEIGHT)
+panel = libtcod.console_new(SCREEN_WIDTH, PANEL_HEIGHT)
 
-panel = libtcod.console_new(SCREEN_HEIGHT, PANEL_HEIGHT)
+# player init
+fighter_component = Fighter(hp=30, defense=2, power=5, death_function=player_death)
+player = Object(0, 0, '@', 'player', libtcod.white, blocks=True, fighter=fighter_component)
+
+# list of objects in game
+objects = [player]
 
 # gen map
 make_map()
@@ -540,11 +570,20 @@ fov_recompute = True
 game_state = 'playing'
 player_action = None
 
+# list of messages in the game
+game_msgs = []
+
 # welcome text
 message('You stumble into the sewers beneath the fortress. Who knows what awaits? You feel uneasy...', libtcod.red)
 
+# controls
+mouse = libtcod.Mouse()
+key = libtcod.Key()
+
 # main loop
 while not libtcod.console_is_window_closed():
+    
+    libtcod.sys_check_for_event(libtcod.EVENT_KEY_PRESS|libtcod.EVENT_MOUSE,key,mouse)
     
     render_all()
     
