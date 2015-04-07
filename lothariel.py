@@ -120,7 +120,7 @@ def player_death(player):
     
     # change player into a corpse for teh lulz
     player.char = '%'
-    player.color - libtcod.dark_red
+    player.color = libtcod.dark_red
 
 def monster_death(monster):
     # transforms monster into a corpse that lies around but otherwise doesn't bother anyone
