@@ -402,7 +402,8 @@ def render_all():
     
     # show the player's health bar in the gui
     
-    render_bar(1, 1, BAR_WIDTH, 'HP', player.fighter.hp, player.fighter.max_hp, libtcod.light_red, libtcod.darker_red)
+    render_bar(1, 1, BAR_WIDTH, 'HP', player.fighter.hp, player.fighter.max_hp,
+        libtcod.light_red, libtcod.darker_red)
     
     # blit to the root console
     
@@ -423,7 +424,8 @@ def render_bar(x, y, total_width, name, value, maximum, bar_color, back_color):
         
     # text containing useful stuff and things
     libtcod.console_set_default_foreground(panel, libtcod.white)
-    libtcod.console_print_ex(panel, x + total_width / 2, y, libtcod.BKGND_NONE, libtcod.CENTER, name + ': ' + str(value) + '/' +str(maximum))
+    libtcod.console_print_ex(panel, x + total_width / 2, y, libtcod.BKGND_NONE, libtcod.CENTER,
+        name + ': ' + str(value) + '/' + str(maximum))
     
         
 # player init
@@ -505,7 +507,7 @@ def player_move_or_attack(dx, dy):
 # message log
 def message(new_msg, color = libtcod.white):
     # split into multiple lines if required
-    new_msg_lines = textwrap.wrap(new_msg, MSG_WIDTH / 2)
+    new_msg_lines = textwrap.wrap(new_msg, MSG_WIDTH)
 
     for line in new_msg_lines:
         # if the buffer is full, remove the oldest message to make room for the newest
