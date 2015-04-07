@@ -20,6 +20,9 @@ import libtcodpy as libtcod
 # import math
 import math
 
+# import wordwrap
+import textwrap
+
 # constants 
 
 # global values
@@ -29,7 +32,17 @@ LIMIT_FPS = 20
 
 # map size
 MAP_WIDTH = 80
-MAP_HEIGHT = 45
+MAP_HEIGHT = 43
+
+# GUI status bar things
+
+BAR_WIDTH = 20
+PANEL_HEIGHT = 7
+PANEL_Y = SCREEN_HEIGHT - PANEL_HEIGHT
+
+MSG_X = BAR_WIDTH + 2
+MSG_WIDTH = SCREEN_WIDTH - BAR_WIDTH - 2
+MSG_HEIGHT = PANEL_HEIGHT - 1 
 
 # room generator
 ROOM_MAX_SIZE = 10
@@ -106,16 +119,16 @@ class Fighter:
         
         if damage > 0:
             # target takes damage
-            print self.owner.name.capitalize() + ' attacks ' + target.name + ' for ' + str(damage) + ' hit points.'
+            message(self.owner.name.capitalize() + ' attacks ' + target.name + ' for ' + str(damage) + ' hit points.')
             target.fighter.take_damage(damage)
         else:
-            print self.owner.name.capitalize() + ' attacks ' + target.name + ' but it is ineffective.'
+            message(self.owner.name.capitalize() + ' attacks ' + target.name + ' but it is ineffective.')
 
 # deth n stuff
 def player_death(player):
     # ends game
     global game_state
-    print 'Bye world!'
+    message('Bye world!')
     game_state = 'dead'
     
     # change player into a corpse for teh lulz
@@ -124,7 +137,7 @@ def player_death(player):
 
 def monster_death(monster):
     # transforms monster into a corpse that lies around but otherwise doesn't bother anyone
-    print monster.name.capitalize() + ' is dead!'
+    message(monster.name.capitalize() + ' is dead!')
     monster.char = '%'
     monster.color = libtcod.dark_red
     monster.blocks = False
@@ -372,12 +385,46 @@ def render_all():
             object.draw()
     player.draw()
                 
-    libtcod.console_blit(con, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0, 0, 0)            
+    libtcod.console_blit(con, 0, 0, MAP_WIDTH, MAP_HEIGHT, 0, 0, 0)    
 
+    # render status bar thing 
+    
+    libtcod.console_set_default_background(panel, libtcod.black)
+    libtcod.console_clear(panel)
+    
+            
+    # print the messages, one line at a time
+    y = 1
+    for (line, color) in game_msgs:
+        libtcod.console_set_default_foreground(panel, color)
+        libtcod.console_print_ex(panel, MSG_X, y, libtcod.BKGND_NONE, libtcod.LEFT, line)
+        y += 1
+    
+    # show the player's health bar in the gui
+    
+    render_bar(1, 1, BAR_WIDTH, 'HP', player.fighter.hp, player.fighter.max_hp, libtcod.light_red, libtcod.darker_red)
+    
+    # blit to the root console
+    
+    libtcod.console_blit(panel, 0, 0, SCREEN_WIDTH, PANEL_HEIGHT, 0, 0, PANEL_Y)
+
+# status bar
+def render_bar(x, y, total_width, name, value, maximum, bar_color, back_color):
+    bar_width = int(float(value) / maximum * total_width)
+    
+    # render the background first
+    libtcod.console_set_default_background(panel, back_color)
+    libtcod.console_rect(panel, x, y, total_width, 1, False, libtcod.BKGND_SCREEN)
+    
+    # render the bar on top
+    libtcod.console_set_default_background(panel, bar_color)
+    if bar_width > 0:
+        libtcod.console_rect(panel, x, y, bar_width, 1, False, libtcod.BKGND_SCREEN)
         
-    # show the player's stats
-    libtcod.console_set_default_foreground(con, libtcod.lime)
-    libtcod.console_print_ex(0, 1, SCREEN_HEIGHT - 2, libtcod.BKGND_NONE, libtcod.LEFT, 'HP: ' + str(player.fighter.hp) + '/' + str(player.fighter.max_hp))
+    # text containing useful stuff and things
+    libtcod.console_set_default_foreground(panel, libtcod.white)
+    libtcod.console_print_ex(panel, x + total_width / 2, y, libtcod.BKGND_NONE, libtcod.CENTER, name + ': ' + str(value) + '/' +str(maximum))
+    
         
 # player init
 fighter_component = Fighter(hp=30, defense=2, power=5, death_function=player_death)
@@ -386,6 +433,9 @@ player = Object(0, 0, '@', 'player', libtcod.white, blocks=True, fighter=fighter
 
 # list of objects in game
 objects = [player]
+
+# list of messages in the game
+game_msgs = []
 
 # input handling
 def handle_keys():
@@ -451,11 +501,27 @@ def player_move_or_attack(dx, dy):
     else:
         player.move(dx, dy)
         fov_recompute = True
-   
+
+# message log
+def message(new_msg, color = libtcod.white):
+    # split into multiple lines if required
+    new_msg_lines = textwrap.wrap(new_msg, MSG_WIDTH / 2)
+
+    for line in new_msg_lines:
+        # if the buffer is full, remove the oldest message to make room for the newest
+        if len(game_msgs) == MSG_HEIGHT:
+            del game_msgs[0]
+            
+        # add the new line as a tuple, with text and color
+        game_msgs.append( (line, color) )
+
+        
 # set up console
 libtcod.console_set_custom_font('terminal12x12_gs_ro.png', libtcod.FONT_TYPE_GREYSCALE | libtcod.FONT_LAYOUT_ASCII_INROW)
 libtcod.console_init_root(SCREEN_WIDTH, SCREEN_HEIGHT, 'Lands of Lothariel', False)
-con = libtcod.console_new(SCREEN_WIDTH, SCREEN_HEIGHT)
+con = libtcod.console_new(MAP_WIDTH, MAP_HEIGHT)
+
+panel = libtcod.console_new(SCREEN_HEIGHT, PANEL_HEIGHT)
 
 # gen map
 make_map()
@@ -471,6 +537,9 @@ fov_recompute = True
 
 game_state = 'playing'
 player_action = None
+
+# welcome text
+message('You stumble into the sewers beneath the fortress. Who knows what awaits? You feel uneasy...', libtcod.red)
 
 # main loop
 while not libtcod.console_is_window_closed():
