@@ -62,6 +62,9 @@ TORCH_RADIUS = 10
 # monster constants
 MAX_ROOM_MONSTERS = 3
 
+# item constants
+MAX_ROOM_ITEMS = 2
+
 # map color definitions
 color_dark_wall = libtcod.Color(76, 26, 128)
 color_light_wall = libtcod.Color(153, 51, 255)
@@ -105,13 +108,17 @@ class Rect:
 # object setup
 class Object:
     # this is a generic object, represented with a character
-    def __init__(self, x, y, char, name, color, blocks=False, fighter=None, ai=None):
+    def __init__(self, x, y, char, name, color, blocks=False, fighter=None, ai=None, item=None):
         self.name = name
         self.blocks = blocks
         self.x = x
         self.y = y
         self.char = char
         self.color = color
+        
+        self.item = item
+        if self.item:
+            self.item.owner = self
         
         self.fighter = fighter
         if self.fighter:
@@ -210,7 +217,18 @@ class BasicMonster:
             # within attack range
             elif player.fighter.hp > 0:
                 monster.fighter.attack(player)
-    
+                
+# item
+class Item:
+    def pick_up(self):
+        # add to player's inventory and remove from the map
+        if len(inventory) >= 26:
+            message('Your inventory is full, cannot pick up ' + self.owner.name + '.', libtcod.blue)
+        else:
+            inventory.append(self.owner)
+            objects.remove(self.owner)
+            message('You picked up a ' + self.owner.name + '!', libtcod.green)
+            
 ###################################
 # Functions
 ###################################
@@ -321,8 +339,8 @@ def place_objects(room):
     
     for i in range(num_monsters):
         # choose a random spot for the monster
-        x = libtcod.random_get_int(0, room.x1, room.x2)
-        y = libtcod.random_get_int(0, room.y1, room.y2)
+        x = libtcod.random_get_int(0, room.x1 + 1, room.x2 - 1)
+        y = libtcod.random_get_int(0, room.y1 + 1, room.y2 - 1)
         
         if not is_blocked(x, y):
             if libtcod.random_get_int(0, 0, 100) < 80: # 80% chance of this
@@ -341,6 +359,21 @@ def place_objects(room):
                     blocks=True, fighter=fighter_component, ai=ai_component)
             
             objects.append(monster)
+            
+    # choose a random number of items up to the max
+    num_items = libtcod.random_get_int(0, 0, MAX_ROOM_ITEMS)
+    
+    for i in range(num_items):
+        # choose a random spot for the items
+        x = libtcod.random_get_int(0, room.x1 + 1, room.x2 - 1)
+        y = libtcod.random_get_int(0, room.y1 + 1, room.y2 - 1)
+        
+        if not is_blocked(x, y):
+            item_component = Item()
+            item = Object(x, y, '!', 'healing potion', libtcod.violet, item=item_component)
+            
+            objects.append(item)
+            item.send_to_back() # items should appear below monsters and stuff
 
 # status bar
 def render_bar(x, y, total_width, name, value, maximum, bar_color, back_color):
@@ -513,6 +546,16 @@ def handle_keys():
             player_move_or_attack(1, -1)
             
         else:
+            # test for other input
+            key_char = chr(key.c)
+            
+            if key_char == 'g':
+                # pick up (Get) item
+                for object in objects:
+                    if object.x == player.x and object.y == player.y and object.item:
+                        object.item.pick_up()
+                        break
+                        
             return 'didnt-take-turn'
             
 # deth n stuff
@@ -537,6 +580,7 @@ def monster_death(monster):
     monster.name = monster.name + ' corpse'
     monster.send_to_back()
     
+    
 ###############################
 # Initialization and main loop
 ###############################        
@@ -554,6 +598,9 @@ player = Object(0, 0, '@', 'player', libtcod.white, blocks=True, fighter=fighter
 
 # list of objects in game
 objects = [player]
+
+# player's inventory
+inventory = []
 
 # gen map
 make_map()
