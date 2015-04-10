@@ -621,7 +621,7 @@ player_action = None
 game_msgs = []
 
 # welcome text
-message('You stumble into the sewers beneath the fortress. Who knows what awaits? You feel uneasy...', libtcod.red)
+message('You stumble into the sewers beneath the fortress of Lothariel. Who knows what awaits? You feel uneasy...', libtcod.red)
 
 # controls
 mouse = libtcod.Mouse()
