@@ -296,6 +296,15 @@ def cast_heal():
         
     message('Your wounds are feeling better!', libtcod.light_violet)
     player.fighter.heal(HEAL_AMOUNT)
+
+# full heal    
+def max_heal():
+    if player.fighter.hp == player.fighter.max_hp:
+        message('Your health is full', libtcod.red)
+        return 'cancelled'
+    
+    message('Your wounds are healed!', libtcod.violet)
+    player.fighter.hp = player.fighter.max_hp
         
 def make_map():
     global map, player
@@ -397,8 +406,15 @@ def place_objects(room):
         y = libtcod.random_get_int(0, room.y1 + 1, room.y2 - 1)
         
         if not is_blocked(x, y):
-            item_component = Item(use_function=cast_heal)
-            item = Object(x, y, '!', 'healing potion', libtcod.violet, item=item_component)
+            if libtcod.random_get_int(0, 0, 100) < 80:
+            
+                item_component = Item(use_function=cast_heal)
+                item = Object(x, y, '!', 'healing potion', libtcod.violet, item=item_component)
+            
+            else:
+            
+                item_component = Item(use_function=max_heal)
+                item = Object(x, y, '!', 'full heal', libtcod.red, item=item_component)
             
             objects.append(item)
             item.send_to_back() # items should appear below monsters and stuff
