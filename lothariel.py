@@ -201,10 +201,14 @@ class Fighter:
         
         if damage > 0:
             # target takes damage
-            message(self.owner.name.capitalize() + ' attacks ' + target.name + ' for ' + str(damage) + ' hit points.')
+            message(
+                self.owner.name.capitalize() + ' attacks ' 
+                + target.name + ' for ' + str(damage) + ' hit points.')
             target.fighter.take_damage(damage)
         else:
-            message(self.owner.name.capitalize() + ' attacks ' + target.name + ' but it is ineffective.')
+            message(
+                self.owner.name.capitalize() + ' attacks '
+                + target.name + ' but it is ineffective.')
 
     def heal(self, amount):
         # heal by the given amount, without going over the max
@@ -300,7 +304,7 @@ def cast_heal():
 # full heal    
 def max_heal():
     if player.fighter.hp == player.fighter.max_hp:
-        message('Your health is full', libtcod.red)
+        message('Your health is full.', libtcod.red)
         return 'cancelled'
     
     message('Your wounds are healed!', libtcod.violet)
@@ -472,14 +476,18 @@ def render_all():
                 # prevent player from seeing tiles that haven't previously been uncovered
                 if map[x][y].explored:
                     if wall:
-                        libtcod.console_set_char_background(con, x, y, color_dark_wall, libtcod.BKGND_SET)
+                        libtcod.console_set_char_background(
+                            con, x, y, color_dark_wall, libtcod.BKGND_SET)
                     else:
-                        libtcod.console_set_char_background(con, x, y, color_dark_ground, libtcod.BKGND_SET)
+                        libtcod.console_set_char_background(
+                            con, x, y, color_dark_ground, libtcod.BKGND_SET)
             else:
                 if wall:
-                    libtcod.console_set_char_background(con, x, y, color_light_wall,libtcod.BKGND_SET)
+                    libtcod.console_set_char_background(
+                        con, x, y, color_light_wall,libtcod.BKGND_SET)
                 else:
-                    libtcod.console_set_char_background(con, x, y, color_light_ground, libtcod.BKGND_SET)
+                    libtcod.console_set_char_background(
+                        con, x, y, color_light_ground, libtcod.BKGND_SET)
                 map[x][y].explored = True
     
     # draw all objects in the object list 
@@ -510,7 +518,8 @@ def render_all():
                 
     # display names of objects under the mouse
     libtcod.console_set_default_foreground(panel, libtcod.light_gray)
-    libtcod.console_print_ex(panel, 1, 1, libtcod.BKGND_NONE, libtcod.LEFT, get_names_under_mouse())
+    libtcod.console_print_ex(
+        panel, 1, 1, libtcod.BKGND_NONE, libtcod.LEFT, get_names_under_mouse())
     
     # blit to the root console
     
@@ -602,7 +611,8 @@ def handle_keys():
                         
             if key_char == 'i':
                 # show the inventory
-                chosen_item = inventory_menu('Press the key next to an item to use it, or any other to cancel.\n')
+                chosen_item = inventory_menu(
+                    'Press the key next to an item to use it, or any other to cancel.\n')
                 if chosen_item is not None:
                     chosen_item.use()
                         
@@ -636,13 +646,15 @@ def menu(header, options, width):
     if len(options) > 26:
         raise ValueError('Cannot have a menu with more than 26 options')
     # calculate total height for the header (after auto-wrap) and one line per option
-    header_height = libtcod.console_get_height_rect(con, 0, 0, width, SCREEN_HEIGHT, header)
+    header_height = libtcod.console_get_height_rect(
+        con, 0, 0, width, SCREEN_HEIGHT, header)
     height = len(options) + header_height
     # create a console off screen that represents the menu's window
     window = libtcod.console_new(width, height)
     # print the header, wrap if required
     libtcod.console_set_default_foreground(window, libtcod.white)
-    libtcod.console_print_rect_ex(window, 0, 0, width, height, libtcod.BKGND_NONE, libtcod.LEFT, header)
+    libtcod.console_print_rect_ex(
+        window, 0, 0, width, height, libtcod.BKGND_NONE, libtcod.LEFT, header)
     # print all the options
     y = header_height
     letter_index = ord('a')
@@ -680,7 +692,8 @@ def inventory_menu(header):
 ###############################        
         
 # set up console
-libtcod.console_set_custom_font('terminal12x12_gs_ro.png', libtcod.FONT_TYPE_GREYSCALE | libtcod.FONT_LAYOUT_ASCII_INROW)
+libtcod.console_set_custom_font(
+    'terminal12x12_gs_ro.png', libtcod.FONT_TYPE_GREYSCALE | libtcod.FONT_LAYOUT_ASCII_INROW)
 libtcod.console_init_root(SCREEN_WIDTH, SCREEN_HEIGHT, 'Lands of Lothariel', False)
 libtcod.sys_set_fps(LIMIT_FPS)
 con = libtcod.console_new(MAP_WIDTH, MAP_HEIGHT)
@@ -715,7 +728,9 @@ player_action = None
 game_msgs = []
 
 # welcome text
-message('You stumble into the sewers beneath the fortress of Lothariel. Who knows what awaits? You feel uneasy...', libtcod.red)
+message(
+    'You stumble into the sewers beneath the fortress of Lothariel.'
+    ' Who knows what awaits? You feel uneasy...', libtcod.red)
 
 # controls
 mouse = libtcod.Mouse()
