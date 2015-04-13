@@ -68,7 +68,7 @@ HEAL_AMOUNT = 8
 MAX_ROOM_MONSTERS = 3
 
 # item constants
-MAX_ROOM_ITEMS = 2
+MAX_ROOM_ITEMS = 1
 
 # map color definitions
 color_dark_wall = libtcod.Color(76, 26, 128)
@@ -410,7 +410,7 @@ def place_objects(room):
         y = libtcod.random_get_int(0, room.y1 + 1, room.y2 - 1)
         
         if not is_blocked(x, y):
-            if libtcod.random_get_int(0, 0, 100) < 80:
+            if libtcod.random_get_int(0, 0, 100) < 90:
             
                 item_component = Item(use_function=cast_heal)
                 item = Object(x, y, '!', 'healing potion', libtcod.violet, item=item_component)
