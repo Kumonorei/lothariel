@@ -410,15 +410,22 @@ def place_objects(room):
         y = libtcod.random_get_int(0, room.y1 + 1, room.y2 - 1)
         
         if not is_blocked(x, y):
-            if libtcod.random_get_int(0, 0, 100) < 90:
-            
+            dice = libtcod.random_get_int(0, 0, 100)
+            if dice < 70:
+                # create a regular heal potion (70% chance)
                 item_component = Item(use_function=cast_heal)
                 item = Object(x, y, '!', 'healing potion', libtcod.violet, item=item_component)
             
-            else:
-            
+            elif dice < 80:
+                # create a full heal potion (10% chance)
                 item_component = Item(use_function=max_heal)
                 item = Object(x, y, '!', 'full heal', libtcod.red, item=item_component)
+                
+            else:
+                # create a lightning blast scroll (10% chance)
+                item_component = Item(use_function=cast_lightning)
+                item = Object(x, y, '?', 'scroll of Lightning Blast', libtcod.white, item=item_component)
+                
             
             objects.append(item)
             item.send_to_back() # items should appear below monsters and stuff
