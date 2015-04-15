@@ -317,7 +317,7 @@ def cast_lightning():
             dist = player.distance_to(object)
             if dist <= 2:
                 object.fighter.take_damage(8)
-                message('A large blast of lightnint damages nearby creatures!')
+                message('A large blast of lightning damages nearby creatures!')
                 
     
         
