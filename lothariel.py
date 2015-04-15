@@ -309,6 +309,17 @@ def max_heal():
     
     message('Your wounds are healed!', libtcod.violet)
     player.fighter.hp = player.fighter.max_hp
+
+# attack that will damage all enemies in radius of 2 from player    
+def cast_lightning():
+    for object in objects:
+        if object.fighter and not object == player and libtcod.map_is_in_fov(fov_map, object.x, object.y):
+            dist = player.distance_to(object)
+            if dist <= 2:
+                object.fighter.take_damage(8)
+                message('A large blast of lightnint damages nearby creatures!')
+                
+    
         
 def make_map():
     global map, player
