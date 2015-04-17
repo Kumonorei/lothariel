@@ -64,6 +64,9 @@ TORCH_RADIUS = 10
 # potion strength
 HEAL_AMOUNT = 8
 
+# damage globals
+LIGHTNING_DAMAGE = 15
+
 # monster constants
 MAX_ROOM_MONSTERS = 3
 
@@ -312,12 +315,16 @@ def max_heal():
 
 # attack that will damage all enemies in radius of 2 from player    
 def cast_lightning():
+    message('A large blast of lightning appears!', libtcod.yellow)
     for object in objects:
         if object.fighter and not object == player and libtcod.map_is_in_fov(fov_map, object.x, object.y):
             dist = player.distance_to(object)
             if dist <= 2:
-                object.fighter.take_damage(8)
-                message('A large blast of lightning damages nearby creatures!')
+                # print the message about damage first, as if it kills the monster it will tell us the corpse has taken damage...
+                message(object.name.capitalize() + ' takes ' + str(LIGHTNING_DAMAGE) + ' points of lightning damage!', libtcod.red)
+                object.fighter.take_damage(LIGHTNING_DAMAGE)
+                
+                
                 
     
         
