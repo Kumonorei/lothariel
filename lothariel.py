@@ -1,4 +1,4 @@
-#!python2
+#! python2
 
 ######################
 #                    #
@@ -718,7 +718,7 @@ def inventory_menu(header):
         
 # set up console
 libtcod.console_set_custom_font(
-    'terminal12x12_gs_ro.png', libtcod.FONT_TYPE_GREYSCALE | libtcod.FONT_LAYOUT_ASCII_INROW)
+    'terminal12x12_gs_ro.png', libtcod.FONT_LAYOUT_ASCII_INROW | libtcod.FONT_TYPE_GREYSCALE)
 libtcod.console_init_root(SCREEN_WIDTH, SCREEN_HEIGHT, 'Lands of Lothariel', False)
 libtcod.sys_set_fps(LIMIT_FPS)
 con = libtcod.console_new(MAP_WIDTH, MAP_HEIGHT)
