@@ -7,10 +7,10 @@
 ######################
 
 
-# version 0.01a
+# version 0.0.2
 # Author: Scott Macleod
 #
-# A roguelike based on the python/libtcod tutorial 
+# A roguelike game built in python/libtcod 
 #
 
 ############################
@@ -72,6 +72,12 @@ MAX_ROOM_MONSTERS = 3
 
 # item constants
 MAX_ROOM_ITEMS = 1
+
+# confusion times
+CONFUSE_NUM_TURNS = 7
+
+# confusion spell range
+CONFUSE_RANGE = 6
 
 # map color definitions
 color_dark_wall = libtcod.Color(76, 26, 128)
@@ -234,6 +240,26 @@ class BasicMonster:
             elif player.fighter.hp > 0:
                 monster.fighter.attack(player)
                 
+# confused monster ai
+class ConfusedMonster:
+    def __init__(self, old_ai, num_turns=CONFUSE_NUM_TURNS):
+        # monster will be confused temporarily. each turn will take a step towards original ai
+        self.old_ai = old_ai
+        self.num_turns = num_turns
+
+    def take_turn(self):
+        # monster moves in random direction on it's turn, and takes one off number of turns confused
+        
+        # if still confused
+        if self.num_turns > 0:
+            self.owner.move(libtcod.random_get_int(0, -1, 1), libtcod.random_get_int(0, -1, 1))
+            self.num_turns -= 10
+        
+        # no longer confused
+        else:
+            self.owner.ai = self.old_ai
+            message('The ' + self.owner.name + ' is no longer confused!', libtcod.red)
+                
 # item
 class Item:
     def __init__(self, use_function=None):
@@ -325,6 +351,18 @@ def cast_lightning():
                 object.fighter.take_damage(LIGHTNING_DAMAGE)
                 
                 
+# attack that will confuse the enemy
+def cast_confuse():
+    # find the nearest enemy and confuse it
+    for object in objects:
+        if object.fighter and not object == player and libtcod.map_is_in_fov(fov_map, object.x, object.y):
+            dist = player.distance_to(object)
+            if dist <= 6:        
+                # replace the monster's normal ai with the confused ai
+                old_ai = monster.ai
+                monster.ai = ConfusedMonster(old_ai)
+                monster.ai.owner = monster
+                message('The ' + monster.name + ' seems unsure of what is happening!', libtcod.light_green)
                 
     
         
@@ -429,20 +467,25 @@ def place_objects(room):
         
         if not is_blocked(x, y):
             dice = libtcod.random_get_int(0, 0, 100)
-            if dice < 70:
-                # create a regular heal potion (70% chance)
+            if dice < 50:
+                # create a regular heal potion (50% chance)
                 item_component = Item(use_function=cast_heal)
                 item = Object(x, y, '!', 'healing potion', libtcod.violet, item=item_component)
             
-            elif dice < 80:
-                # create a full heal potion (10% chance)
+            elif dice < 65:
+                # create a full heal potion (15% chance)
                 item_component = Item(use_function=max_heal)
                 item = Object(x, y, '!', 'full heal', libtcod.red, item=item_component)
                 
-            else:
-                # create a lightning blast scroll (10% chance)
+            elif dice < 85:
+                # create a lightning blast scroll (20% chance)
                 item_component = Item(use_function=cast_lightning)
                 item = Object(x, y, '?', 'scroll of Lightning Blast', libtcod.white, item=item_component)
+                
+            else:
+                #create a scroll of confusion (15% chance)
+                item_component = Item(use_function=cast_confuse)
+                item = Object(x, y, '?', 'scroll of Confusion', libtcod.white, item=item_component)
                 
             
             objects.append(item)
