@@ -359,6 +359,7 @@ def cast_confuse():
             dist = player.distance_to(object)
             if dist <= 6:        
                 # replace the monster's normal ai with the confused ai
+                monster = object.fighter
                 old_ai = monster.ai
                 monster.ai = ConfusedMonster(old_ai)
                 monster.ai.owner = monster
